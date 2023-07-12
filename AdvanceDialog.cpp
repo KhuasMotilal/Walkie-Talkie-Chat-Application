@@ -60,7 +60,6 @@ HBRUSH AdvanceDialog::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 
 		pDC->SetBkColor(RGB(200, 200, 200));
 		hbr = CreateSolidBrush(RGB(200, 200, 200)); // Set the desired RGB color values
-		// Set the desired RGB color values
 	}
 	return hbr;
 }
