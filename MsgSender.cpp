@@ -12,31 +12,24 @@
 #endif
 
 
-// CMsgSenderApp
 
 BEGIN_MESSAGE_MAP(CMsgSenderApp, CWinApp)
 	ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
 END_MESSAGE_MAP()
 
 
-// CMsgSenderApp construction
 
 CMsgSenderApp::CMsgSenderApp()
 {
 	// support Restart Manager
 	m_dwRestartManagerSupportFlags = AFX_RESTART_MANAGER_SUPPORT_RESTART;
-
-	// TODO: add construction code here,
-	// Place all significant initialization in InitInstance
 }
 
 
-// The one and only CMsgSenderApp object
 
 CMsgSenderApp theApp;
 
 
-// CMsgSenderApp initialization
 
 BOOL CMsgSenderApp::InitInstance()
 {
@@ -51,7 +44,6 @@ BOOL CMsgSenderApp::InitInstance()
 	InitCommonControlsEx(&InitCtrls);
 
 	CWinApp::InitInstance();
-
 
 	AfxEnableControlContainer();
 
@@ -96,9 +88,9 @@ BOOL CMsgSenderApp::InitInstance()
 		delete pShellManager;
 	}
 
-#if !defined(_AFXDLL) && !defined(_AFX_NO_MFC_CONTROLS_IN_DIALOGS)
-	ControlBarCleanUp();
-#endif
+	#if !defined(_AFXDLL) && !defined(_AFX_NO_MFC_CONTROLS_IN_DIALOGS)
+		ControlBarCleanUp();
+	#endif
 
 	// Since the dialog has been closed, return FALSE so that we exit the
 	//  application, rather than start the application's message pump.

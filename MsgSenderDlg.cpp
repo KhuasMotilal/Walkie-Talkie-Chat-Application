@@ -17,9 +17,9 @@ class CAboutDlg : public CDialogEx{
 	public:
 		CAboutDlg();
 
-	#ifdef AFX_DESIGN_TIME
-		enum { IDD = IDD_ABOUTBOX };
-	#endif
+		#ifdef AFX_DESIGN_TIME
+			enum { IDD = IDD_ABOUTBOX };
+		#endif
 
 	protected:
 		virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
@@ -29,18 +29,18 @@ class CAboutDlg : public CDialogEx{
 };
 
 
+
 CAboutDlg::CAboutDlg() : CDialogEx(IDD_ABOUTBOX) {	}
+
 
 
 void CAboutDlg::DoDataExchange(CDataExchange* pDX){
 	CDialogEx::DoDataExchange(pDX);
 }
 
+
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
-
-
-// CMsgSenderDlg dialog
 
 
 
@@ -54,11 +54,14 @@ CMsgSenderDlg::CMsgSenderDlg(CWnd* pParent /*=nullptr*/)
 		exit(EXIT_FAILURE);
 	}
 
+	m_cstrAdvancePort = 9909;
 	m_sTimeVal.tv_sec = 1;
 	m_sTimeVal.tv_usec = 0;
 	m_bIfConnectButtonClicked = false;
 	buff[255] = { 0, };
 }
+
+
 
 void CMsgSenderDlg::DoDataExchange(CDataExchange* pDX)
 {
@@ -68,6 +71,8 @@ void CMsgSenderDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT_PORT, m_CEInputPort);
 	DDX_Control(pDX, IDC_LIST_DISPLAY, m_displayBox);
 }
+
+
 
 BEGIN_MESSAGE_MAP(CMsgSenderDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
@@ -82,8 +87,8 @@ BEGIN_MESSAGE_MAP(CMsgSenderDlg, CDialogEx)
 END_MESSAGE_MAP()
 
 
-// CMsgSenderDlg message handlers
 
+// CMsgSenderDlg message handlers
 BOOL CMsgSenderDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
@@ -113,10 +118,8 @@ BOOL CMsgSenderDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
-	//ShowWindow(SW_MAXIMIZE);
 
 	ShowWindow(SW_MINIMIZE);
-	// TODO: Add extra initialization here
 
 
 	CStatic* pHeading = (CStatic*)GetDlgItem(IDC_STATIC_HEADING);
@@ -160,6 +163,8 @@ BOOL CMsgSenderDlg::OnInitDialog()
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
+
+
 void CMsgSenderDlg::OnSysCommand(UINT nID, LPARAM lParam)
 {
 	if ((nID & 0xFFF0) == IDM_ABOUTBOX)
@@ -172,6 +177,8 @@ void CMsgSenderDlg::OnSysCommand(UINT nID, LPARAM lParam)
 		CDialogEx::OnSysCommand(nID, lParam);
 	}
 }
+
+
 
 // If you add a minimize button to your dialog, you will need the code below
 //  to draw the icon.  For MFC applications using the document/view model,
@@ -219,6 +226,8 @@ void CMsgSenderDlg::OnPaint()
 	dc2.StretchBlt(170, -8, rect2.Width(), rect2.Height(), &memoryDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
 }
 
+
+
 HBRUSH CMsgSenderDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
 	HBRUSH hbr = CDialog::OnCtlColor(pDC, pWnd, nCtlColor);
@@ -239,6 +248,8 @@ HBRUSH CMsgSenderDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	return hbr;
 }
 
+
+
 // The system calls this function to obtain the cursor to display while the user drags
 //  the minimized window.
 HCURSOR CMsgSenderDlg::OnQueryDragIcon()
@@ -252,7 +263,8 @@ HCURSOR CMsgSenderDlg::OnQueryDragIcon()
 /******************************* FUNCTION FOR STARTING SERVER *******************************/
 /********************************************************************************************/
 bool CMsgSenderDlg::StartServer(int l_iPort) {
-	int l_IRetVal;
+
+	int l_iRetVal;
 
 	m_ServerSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (m_ServerSocket < 0) {
@@ -265,14 +277,14 @@ bool CMsgSenderDlg::StartServer(int l_iPort) {
 	m_ServerSockAddr.sin_addr.s_addr = INADDR_ANY;
 	memset(&m_ServerSockAddr.sin_zero, 0, 8);
 
-	l_IRetVal = bind(m_ServerSocket, (sockaddr*)&m_ServerSockAddr, sizeof(sockaddr));
-	if (l_IRetVal < 0) {
+	l_iRetVal = bind(m_ServerSocket, (sockaddr*)&m_ServerSockAddr, sizeof(sockaddr));
+	if (l_iRetVal < 0) {
 		MessageBox(L"Failed to bind with local port", L"Failed", MB_OK | MB_ICONERROR);
 		return false;
 	}
 
-	l_IRetVal = listen(m_ServerSocket, 1);
-	if (l_IRetVal < 0) {
+	l_iRetVal = listen(m_ServerSocket, 1);
+	if (l_iRetVal < 0) {
 		MessageBox(L"Failed to listen from the local port", L"Failed", MB_OK | MB_ICONERROR);
 		return false;
 	}	
@@ -399,7 +411,7 @@ void CMsgSenderDlg::FontStyling(CFont& font, int fontSize, int fontWeight, bool 
 
 
 /*********************************************************************************************/
-/************************************ SEND BUTTON HADLER *************************************/
+/************************************ SEND BUTTON HANDLER ************************************/
 /*********************************************************************************************/
 void CMsgSenderDlg::OnBnClickedSend(){
 	CString l_csInputMsg, l_csDateTime, l_string_msg;
@@ -426,8 +438,9 @@ void CMsgSenderDlg::OnBnClickedSend(){
 }
 
 
+
 /*********************************************************************************************/
-/*********************************** CLEAR BUTTON HADLER *************************************/
+/*********************************** CLEAR BUTTON HANDLER ************************************/
 /*********************************************************************************************/
 void CMsgSenderDlg::OnBnClickedButtonClearchat(){
 	m_displayBox.ResetContent();
@@ -437,7 +450,7 @@ void CMsgSenderDlg::OnBnClickedButtonClearchat(){
 
 
 /*********************************************************************************************/
-/*********************************** CONNECT BUTTON HADLER ***********************************/
+/*********************************** CONNECT BUTTON HANDLER **********************************/
 /*********************************************************************************************/
 void CMsgSenderDlg::OnBnClickedButtonConnect(){
 	CString l_CSInputAddress, l_CSInputPort;
@@ -453,6 +466,11 @@ void CMsgSenderDlg::OnBnClickedButtonConnect(){
 	ClientConnection(l_SInputAddress, l_IInuptPort);
 }
 
+
+
+/*********************************************************************************************/
+/*********************************** CANCEL BUTTON HANDLER ***********************************/
+/*********************************************************************************************/
 void CMsgSenderDlg::OnBnClickedCancel()
 {
 	// TODO: Add your control notification handler code here
@@ -460,6 +478,10 @@ void CMsgSenderDlg::OnBnClickedCancel()
 }
 
 
+
+/*********************************************************************************************/
+/*********************************** ADVANCE BUTTON HANDLER **********************************/
+/*********************************************************************************************/
 void CMsgSenderDlg::OnBnClickedButtonAdvance()
 {
 	// TODO: Add your control notification handler code here

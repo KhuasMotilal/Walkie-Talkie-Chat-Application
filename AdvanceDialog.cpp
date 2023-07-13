@@ -5,6 +5,7 @@
 #include "MsgSender.h"
 #include "AdvanceDialog.h"
 #include "afxdialogex.h"
+#include <iostream>
 
 
 // AdvanceDialog dialog
@@ -13,9 +14,10 @@ IMPLEMENT_DYNAMIC(AdvanceDialog, CDialogEx)
 
 AdvanceDialog::AdvanceDialog(CWnd* pParent, CMsgSenderDlg* p_obj)
 	: CDialogEx(IDD_ADVANCE_DIALOG, pParent)
+	
 {
 	this->m_obj = p_obj;
-	this->m_cstrPort = L"9909";
+	m_DisplayPort = m_obj->m_cstrAdvancePort;
 }
 
 AdvanceDialog::~AdvanceDialog()
@@ -26,21 +28,14 @@ void AdvanceDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_EDIT_NEW_IP, m_newPort);
+	DDX_Text(pDX, IDC_EDIT_NEW_IP, m_DisplayPort);
 }
 
 
 BEGIN_MESSAGE_MAP(AdvanceDialog, CDialogEx)
-	ON_WM_PAINT()
-	ON_WM_CTLCOLOR()
 	ON_BN_CLICKED(ID_OK, &AdvanceDialog::OnBnClickedOk)
 	ON_BN_CLICKED(ID_CANCEL, &AdvanceDialog::OnBnClickedCancel)
 END_MESSAGE_MAP()
-
-
-BOOL AdvanceDialog::OnInitDialog() {
-	SetDlgItemTextW(IDC_EDIT_NEW_IP, m_cstrPort);
-	return TRUE;
-}
 
 
 void AdvanceDialog::OnPaint()
@@ -66,20 +61,17 @@ HBRUSH AdvanceDialog::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 
 void AdvanceDialog::OnBnClickedOk()
 {
-	// TODO: Add your control notification handler code here
 	CString l_csPort;
 	int l_iPort;
+
 	UpdateData(TRUE);
-	m_newPort.GetWindowTextW(l_csPort);
+	GetDlgItemText(IDC_EDIT_NEW_IP, l_csPort);
 	l_iPort = _wtoi(l_csPort);
 
-	/*if (m_obj->StartServer(l_iPort)) {
-		m_cstrPort = l_csPort;
+	if (m_obj->StartServer(l_iPort)) {
+		m_obj->m_cstrAdvancePort = l_iPort;
 		AfxBeginThread(m_obj->ProcessingRequest, m_obj);
-	}*/
-
-	m_obj->StartServer(l_iPort);
-	AfxBeginThread(m_obj->ProcessingRequest, m_obj);
+	}
 
 	CDialogEx::OnOK();
 }

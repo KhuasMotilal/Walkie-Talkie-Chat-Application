@@ -21,6 +21,8 @@ public:
 
 		CListBox m_displayBox;
 
+		int m_cstrAdvancePort;
+
 		CFont m_FontHeading;
 		CFont m_FontHeadingClientInfo;
 		CFont m_FontHeadingSettings;
