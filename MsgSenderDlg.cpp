@@ -54,11 +54,9 @@ CMsgSenderDlg::CMsgSenderDlg(CWnd* pParent /*=nullptr*/)
 		exit(EXIT_FAILURE);
 	}
 
-	m_cstrAdvancePort = 9909;
-	m_sTimeVal.tv_sec = 1;
-	m_sTimeVal.tv_usec = 0;
-	m_bIfConnectButtonClicked = false;
-	buff[255] = { 0, };
+	m_strAdvancePort = 9909;
+	m_bIsClientWindow = false;
+	m_cBuff[255] = { 0, };
 }
 
 
@@ -66,10 +64,13 @@ CMsgSenderDlg::CMsgSenderDlg(CWnd* pParent /*=nullptr*/)
 void CMsgSenderDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_EDIT_MSG, m_msg);
-	DDX_Control(pDX, IDC_EDIT_IP, m_CEInputAddress);
-	DDX_Control(pDX, IDC_EDIT_PORT, m_CEInputPort);
+	DDX_Control(pDX, IDC_EDIT_MSG, m_InputMsg);
+	DDX_Control(pDX, IDC_EDIT_IP, m_InputAddress);
+	DDX_Control(pDX, IDC_EDIT_PORT, m_InputPort);
 	DDX_Control(pDX, IDC_LIST_DISPLAY, m_displayBox);
+	DDX_Control(pDX, IDC_BUTTON_CONNECT, m_ButtonConnect);
+	DDX_Control(pDX, IDC_BUTTON_ADVANCE, m_ButtonAdvance);
+	DDX_Control(pDX, IDC_BUTTON_DISCONNECT, m_ButtonDisconnect);
 }
 
 
@@ -84,6 +85,7 @@ BEGIN_MESSAGE_MAP(CMsgSenderDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_CONNECT, &CMsgSenderDlg::OnBnClickedButtonConnect)
 	ON_BN_CLICKED(ID_CANCEL, &CMsgSenderDlg::OnBnClickedCancel)
 	ON_BN_CLICKED(IDC_BUTTON_ADVANCE, &CMsgSenderDlg::OnBnClickedButtonAdvance)
+	ON_BN_CLICKED(IDC_BUTTON_DISCONNECT, &CMsgSenderDlg::OnBnClickedButtonDisconnect)
 END_MESSAGE_MAP()
 
 
@@ -158,7 +160,7 @@ BOOL CMsgSenderDlg::OnInitDialog()
 	CButton* pButtonClose = (CButton*)GetDlgItem(ID_CANCEL);
 	FontStyling(m_FontButtonClose, 17, FW_MEDIUM, FALSE, FALSE, _T("Arial"), nullptr, pButtonClose);
 
-	if(StartServer())	AfxBeginThread(ProcessingRequest, this);
+	StartServer();
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -167,13 +169,11 @@ BOOL CMsgSenderDlg::OnInitDialog()
 
 void CMsgSenderDlg::OnSysCommand(UINT nID, LPARAM lParam)
 {
-	if ((nID & 0xFFF0) == IDM_ABOUTBOX)
-	{
+	if ((nID & 0xFFF0) == IDM_ABOUTBOX){
 		CAboutDlg dlgAbout;
 		dlgAbout.DoModal();
 	}
-	else
-	{
+	else{
 		CDialogEx::OnSysCommand(nID, lParam);
 	}
 }
@@ -192,8 +192,7 @@ void CMsgSenderDlg::OnPaint()
 	CBrush brush;
 	brush.CreateSolidBrush(RGB(180, 180, 180));
 	dc2.FillRect(&rect2, &brush);
-	if (IsIconic())
-	{
+	if (IsIconic()){
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc2.GetSafeHdc()), 0);
 
 		// Center icon in client rectangle
@@ -206,15 +205,14 @@ void CMsgSenderDlg::OnPaint()
 		// Draw the icon
 		dc2.DrawIcon(x, y, m_hIcon);
 	}
-	else
-	{
+	else{
 		CDialogEx::OnPaint();
 	}
 
 	
 	GetDlgItem(IDC_STATIC_IMAGE_BOX)->GetClientRect(rect2);
 	CImage image;
-	image.Load(L"D:\\Coading\\Socket\\MsgSender\\res\\OditekLogo-removebg-preview.jpg");
+	image.Load(L"res//OditekLogo-removebg-preview.jpg");
 	CBitmap m_bitmap;
 	m_bitmap.Attach(image.Detach());
 	CDC memoryDC;
@@ -252,142 +250,18 @@ HBRUSH CMsgSenderDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 
 // The system calls this function to obtain the cursor to display while the user drags
 //  the minimized window.
-HCURSOR CMsgSenderDlg::OnQueryDragIcon()
-{
+HCURSOR CMsgSenderDlg::OnQueryDragIcon(){
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
 
 
-/********************************************************************************************/
-/******************************* FUNCTION FOR STARTING SERVER *******************************/
-/********************************************************************************************/
-bool CMsgSenderDlg::StartServer(int l_iPort) {
-
-	int l_iRetVal;
-
-	m_ServerSocket = socket(AF_INET, SOCK_STREAM, 0);
-	if (m_ServerSocket < 0) {
-		MessageBox(L"Failed to open socket", L"Failed", MB_OK | MB_ICONERROR);
-		return false;
-	}
-
-	m_ServerSockAddr.sin_family = AF_INET;
-	m_ServerSockAddr.sin_port = l_iPort;
-	m_ServerSockAddr.sin_addr.s_addr = INADDR_ANY;
-	memset(&m_ServerSockAddr.sin_zero, 0, 8);
-
-	l_iRetVal = bind(m_ServerSocket, (sockaddr*)&m_ServerSockAddr, sizeof(sockaddr));
-	if (l_iRetVal < 0) {
-		MessageBox(L"Failed to bind with local port", L"Failed", MB_OK | MB_ICONERROR);
-		return false;
-	}
-
-	l_iRetVal = listen(m_ServerSocket, 1);
-	if (l_iRetVal < 0) {
-		MessageBox(L"Failed to listen from the local port", L"Failed", MB_OK | MB_ICONERROR);
-		return false;
-	}	
-	return true;
-}
-
-
-
-/**********************************************************************************************/
-/************************** THREAD FUNCTION FOR REQUEST PROCESSING ****************************/
-/**********************************************************************************************/
-UINT __cdecl CMsgSenderDlg::ProcessingRequest(LPVOID pParam){
-	CMsgSenderDlg* pThisClass = reinterpret_cast<CMsgSenderDlg*>(pParam);
-	CString l_csDateTime;
-	int l_iLength = sizeof(struct sockaddr);
-	pThisClass->m_iServerSideClientSocket = accept(pThisClass->m_ServerSocket, NULL, &l_iLength);
-	if (pThisClass->m_iServerSideClientSocket < 0) {
-		pThisClass->MessageBox(L"ERRRRRR", L"success", MB_OK | MB_ICONERROR);
-	}
-	else {
-		pThisClass->MessageBox(L"Connected with the Client", L"success", MB_OK | MB_ICONASTERISK);
-	}
-	while (true)
-	{
-		int bytereceived;
-		CString l_string_msg;
-		bytereceived = recv(pThisClass->m_iServerSideClientSocket, pThisClass->buff, 255, 0);
-		pThisClass->buff[bytereceived + 1] = '\0';
-		l_string_msg = pThisClass->buff;
-		l_csDateTime = CTime::GetCurrentTime().Format("%d.%m.%y %H:%M");
-		l_string_msg.Format((L"[ ") + (l_csDateTime)+(L" ] ") + (l_string_msg)+("\n"));
-		if(bytereceived > 0)
-			pThisClass->m_displayBox.AddString(l_string_msg);
-	}
-	return 0;
-}
-
-
-
-/*********************************************************************************************/
-/****************************** FUNCTION FOR CLIENT CONECTION ********************************/
-/*********************************************************************************************/
-void CMsgSenderDlg::ClientConnection(const string p_SAddress, int p_IPort) {
-	int l_IRetVal;
-
-	m_ClientSocket = socket(AF_INET, SOCK_STREAM, 0);
-	if (m_ClientSocket < 0) {
-		MessageBox(L"Failed to opened socket", L"Failed", MB_OK | MB_ICONERROR);
-	}
-
-	m_ClientSockAddr.sin_family = AF_INET;
-	m_ClientSockAddr.sin_port = p_IPort;
-	m_ClientSockAddr.sin_addr.s_addr = inet_addr(p_SAddress.c_str());
-
-	l_IRetVal = connect(m_ClientSocket, (sockaddr*)&m_ClientSockAddr, sizeof(m_ClientSockAddr));
-	if (l_IRetVal < 0) {
-		MessageBox(L"Failed to connect with server", L"Failed", MB_OK | MB_ICONERROR);
-	}
-	else {
-		m_bIfConnectButtonClicked = true;
-		MessageBox(L"Connected with the server", L"Success", MB_OK | MB_ICONASTERISK);
-		CButton* pButtonConnect = (CButton*)GetDlgItem(IDC_BUTTON_CONNECT);
-		pButtonConnect->EnableWindow(false);
-		CString l_string_msg;
-		int bytereceived;
-
-		AfxBeginThread(ReceivingMsg, this);
-	}
-}
-
-
-
-/**********************************************************************************************/
-/********************** THREAD FUNCTION FOR CLIENT SIDE DATA RECEIVING ************************/
-/**********************************************************************************************/
-UINT __cdecl CMsgSenderDlg::ReceivingMsg(LPVOID pParam) {
-	CMsgSenderDlg* pThisClass = reinterpret_cast<CMsgSenderDlg*>(pParam);
-	int bytereceived;
-	CString l_string_msg;
-	CString l_csDateTime;
-	if (pThisClass->m_bIfConnectButtonClicked) {
-		while (true)
-		{
-			bytereceived = recv(pThisClass->m_ClientSocket, pThisClass->buff, 255, 0);
-			pThisClass->buff[bytereceived + 1] = '\0';
-			l_string_msg = pThisClass->buff;
-			l_csDateTime = CTime::GetCurrentTime().Format("%d.%m.%y %H:%M");
-			l_string_msg.Format((L"[ ") + (l_csDateTime)+(L" ] ") + (l_string_msg)+("\n"));
-			if (bytereceived > 0)
-				pThisClass->m_displayBox.AddString(l_string_msg);
-		}
-	}
-	return 0;
-}
-
-
-
-/*********************************************************************************************/
-/******************************** FUNCTION FOR FONT STYLING **********************************/
-/*********************************************************************************************/
-void CMsgSenderDlg::FontStyling(CFont& font, int fontSize, int fontWeight, bool italic, 
-								bool underline, LPCTSTR fontName, CStatic* pStatic, 
-								CButton* pButton){
+/*==========================================================================================*/
+/*=============================| FUNCTION FOR FONT STYLING |================================*/
+/*==========================================================================================*/
+void CMsgSenderDlg::FontStyling(CFont& font, int fontSize, int fontWeight, bool italic,
+	bool underline, LPCTSTR fontName, CStatic* pStatic,
+	CButton* pButton) {
 	font.CreateFont(
 		fontSize,                   // Font size
 		0,                          // Font width (0 for default)
@@ -404,87 +278,246 @@ void CMsgSenderDlg::FontStyling(CFont& font, int fontSize, int fontWeight, bool 
 		DEFAULT_PITCH | FF_DONTCARE,// Pitch and family
 		fontName                    // Font name
 	);
-	if(pStatic != nullptr) pStatic->SetFont(&font);
-	else if(pButton != nullptr) pButton->SetFont(&font);
+	if (pStatic != nullptr) pStatic->SetFont(&font);
+
+	else if (pButton != nullptr) pButton->SetFont(&font);
+
 }
 
 
 
-/*********************************************************************************************/
-/************************************ SEND BUTTON HANDLER ************************************/
-/*********************************************************************************************/
+/*==========================================================================================*/
+/*=============================| FUNCTION FOR STARTING SERVER |=============================*/
+/*==========================================================================================*/
+bool CMsgSenderDlg::StartServer(int p_iPort) {
+
+	int l_iRetVal;
+
+	m_iServerSocket = socket(AF_INET, SOCK_STREAM, 0);
+	if (m_iServerSocket < 0) {
+		MessageBox(L"Failed to open socket", L"Failed", MB_OK | MB_ICONERROR);
+		return false;
+	}
+
+	m_structServerSockAddr.sin_family = AF_INET;
+	m_structServerSockAddr.sin_port = p_iPort;
+	m_structServerSockAddr.sin_addr.s_addr = INADDR_ANY;
+	memset(&m_structServerSockAddr.sin_zero, 0, 8);
+
+	l_iRetVal = bind(m_iServerSocket, (sockaddr*)&m_structServerSockAddr, sizeof(sockaddr));
+	if (l_iRetVal < 0) {
+		MessageBox(L"Failed to bind with local port", L"Failed", MB_OK | MB_ICONERROR);
+		return false;
+	}
+
+	l_iRetVal = listen(m_iServerSocket, 1);
+	if (l_iRetVal < 0) {
+		MessageBox(L"Failed to listen from the local port", L"Failed", MB_OK | MB_ICONERROR);
+		return false;
+	}	
+	AfxBeginThread(ProcessingRequest, this);
+	return true;
+}
+
+
+
+/*==========================================================================================*/
+/*========================| THREAD FUNCTION FOR REQUEST PROCESSING |========================*/
+/*==========================================================================================*/
+UINT __cdecl CMsgSenderDlg::ProcessingRequest(LPVOID pParam){
+
+	CMsgSenderDlg* l_pcThisClass = reinterpret_cast<CMsgSenderDlg*>(pParam);
+	CString l_strDateTime, l_strMessage;
+	int l_iLength = sizeof(sockaddr);
+	int l_iByteReceived;
+
+	l_pcThisClass->m_iServerSideClientSocket = accept(l_pcThisClass->m_iServerSocket, NULL, &l_iLength);
+	if (l_pcThisClass->m_iServerSideClientSocket > 0) {
+		l_pcThisClass->MessageBox(L"Connected with the Client", L"success", MB_OK | MB_ICONASTERISK);
+		l_pcThisClass->m_ButtonConnect.EnableWindow(false);
+	}
+	while (true){
+		l_iByteReceived = recv(l_pcThisClass->m_iServerSideClientSocket, l_pcThisClass->m_cBuff, 255, 0);
+
+		l_strMessage = l_pcThisClass->m_cBuff;
+
+		l_strDateTime = CTime::GetCurrentTime().Format("%d.%m.%y %H:%M");
+
+		l_strMessage.Format((L"[ ") + (l_strDateTime)+(L" ] ") + (l_strMessage)+("\n"));
+
+		if(l_iByteReceived > 0)
+			l_pcThisClass->m_displayBox.AddString(l_strMessage);
+	}
+	return 0;
+}
+
+
+
+/*==========================================================================================*/
+/*============================| FUNCTION FOR CLIENT CONECTION |=============================*/
+/*==========================================================================================*/
+bool CMsgSenderDlg::ClientConnection(const string p_strIpAddress, int p_iPort) {
+
+	int l_iRetVal; 
+
+	m_iClientSocket = socket(AF_INET, SOCK_STREAM, 0);
+	if (m_iClientSocket < 0) {
+		MessageBox(L"Failed to opened socket", L"Failed", MB_OK | MB_ICONERROR);
+		return false;
+	}
+
+	m_structClientSockAddr.sin_family = AF_INET;
+	m_structClientSockAddr.sin_port = p_iPort;
+	m_structClientSockAddr.sin_addr.s_addr = inet_addr(p_strIpAddress.c_str());
+
+	l_iRetVal = connect(m_iClientSocket, (sockaddr*)&m_structClientSockAddr, sizeof(sockaddr));
+	if (l_iRetVal < 0) {
+		MessageBox(L"Failed to connect with server", L"Failed", MB_OK | MB_ICONERROR);
+		return false;
+	}
+	else {
+		MessageBox(L"Connected with the server", L"Success", MB_OK | MB_ICONASTERISK);
+
+		AfxBeginThread(ClientReceivingMsg, this);
+
+
+		closesocket(m_iServerSocket);
+		m_ButtonConnect.EnableWindow(false);
+		m_ButtonAdvance.EnableWindow(false);
+
+		return true;
+	}
+}
+
+
+
+/*==========================================================================================*/
+/*===================| THREAD FUNCTION FOR CLIENT SIDE DATA RECEIVING |=====================*/
+/*==========================================================================================*/
+UINT __cdecl CMsgSenderDlg::ClientReceivingMsg(LPVOID pParam) {
+
+	CMsgSenderDlg* l_pcThisClass = reinterpret_cast<CMsgSenderDlg*>(pParam);
+	int l_iByteReceived;
+	CString l_strMessage, l_strDateTime;
+	
+	while (true){
+		l_iByteReceived = recv(l_pcThisClass->m_iClientSocket, l_pcThisClass->m_cBuff, 255, 0);
+
+		l_strMessage = l_pcThisClass->m_cBuff;
+
+		l_strDateTime = CTime::GetCurrentTime().Format("%d.%m.%y %H:%M");
+
+		l_strMessage.Format((L"[ ") + (l_strDateTime)+(L" ] ") + (l_strMessage)+("\n"));
+
+		if (l_iByteReceived > 0) {
+			l_pcThisClass->m_displayBox.AddString(l_strMessage);
+		}
+	}
+	
+	return 0;
+}
+
+
+
+
+/*==========================================================================================*/
+/*==================================| SEND BUTTON HANDLER |=================================*/
+/*==========================================================================================*/
 void CMsgSenderDlg::OnBnClickedSend(){
-	CString l_csInputMsg, l_csDateTime, l_string_msg;
-	m_msg.GetWindowTextW(l_csInputMsg);
+	CString l_strInputMsg, l_strDateTime;
+	int l_iLength, l_iBufferSize;
 
-	l_csDateTime = CTime::GetCurrentTime().Format("%d.%m.%y %H:%M");
-	m_msg.GetWindowTextW(l_string_msg);
-	l_string_msg.Format((L"[ ") + (l_csDateTime)+(L" ] ")+ (L"[ Self ] ") + (l_string_msg)+("\n"));
-	m_displayBox.AddString(l_string_msg);
+	m_InputMsg.GetWindowTextW(l_strInputMsg);
 
-	int length = l_csInputMsg.GetLength();
-	int bufferSize = min(length + 1, 255);
-	wchar_t* buffer = l_csInputMsg.GetBuffer(bufferSize);
-	wcstombs_s(nullptr, buff, buffer, _TRUNCATE);
-	l_csInputMsg.ReleaseBuffer();
+	l_iLength = l_strInputMsg.GetLength();
+	l_iBufferSize = min(l_iLength + 1, 255);
+	wchar_t* buffer = l_strInputMsg.GetBuffer(l_iBufferSize);
+	wcstombs_s(nullptr, m_cBuff, buffer, _TRUNCATE);
+	l_strInputMsg.ReleaseBuffer();
 
-	if (m_bIfConnectButtonClicked) {
-		send(m_ClientSocket, buff, 255, 0);
+	m_InputMsg.SetWindowText(_T(""));
+	l_strDateTime = CTime::GetCurrentTime().Format("%d.%m.%y %H:%M");
+	l_strInputMsg.Format((L"[ ") + (l_strDateTime)+(L" ] ") + (L"[ Self ] ") + (l_strInputMsg)+("\n"));
+	m_displayBox.AddString(l_strInputMsg);
+
+	if (m_bIsClientWindow) {
+		send(m_iClientSocket, m_cBuff, 255, 0);
 	}
 
-	if (!m_bIfConnectButtonClicked) {   
-		send(m_iServerSideClientSocket, buff, 255, 0);
+	if (!m_bIsClientWindow) {
+		send(m_iServerSideClientSocket, m_cBuff, 255, 0);
 	}
+
 }
 
 
 
-/*********************************************************************************************/
-/*********************************** CLEAR BUTTON HANDLER ************************************/
-/*********************************************************************************************/
+/*==========================================================================================*/
+/*================================| CLEAR BUTTON HANDLER |==================================*/
+/*==========================================================================================*/
 void CMsgSenderDlg::OnBnClickedButtonClearchat(){
 	m_displayBox.ResetContent();
-	m_msg.SetWindowText(_T(""));  
+	m_InputMsg.SetWindowText(_T(""));
 }
 
 
 
-/*********************************************************************************************/
-/*********************************** CONNECT BUTTON HANDLER **********************************/
-/*********************************************************************************************/
+/*==========================================================================================*/
+/*================================| CONNECT BUTTON HANDLER |================================*/
+/*==========================================================================================*/
 void CMsgSenderDlg::OnBnClickedButtonConnect(){
-	CString l_CSInputAddress, l_CSInputPort;
+	CString l_stringInputIpAddress, l_stringInputPort;
 	string l_SInputAddress;
 	int l_IInuptPort;
 
-	m_CEInputAddress.GetWindowTextW(l_CSInputAddress);
-	m_CEInputPort.GetWindowTextW(l_CSInputPort);
+	m_InputAddress.GetWindowTextW(l_stringInputIpAddress);
+	m_InputPort.GetWindowTextW(l_stringInputPort);
 
-	l_SInputAddress = CT2A(l_CSInputAddress.GetString());
-	l_IInuptPort = _wtoi(l_CSInputPort);
+	l_SInputAddress = CT2A(l_stringInputIpAddress.GetString());
+	l_IInuptPort = _wtoi(l_stringInputPort);
 
-	ClientConnection(l_SInputAddress, l_IInuptPort);
+	m_bIsClientWindow = ClientConnection(l_SInputAddress, l_IInuptPort);
 }
 
 
 
-/*********************************************************************************************/
-/*********************************** CANCEL BUTTON HANDLER ***********************************/
-/*********************************************************************************************/
-void CMsgSenderDlg::OnBnClickedCancel()
-{
-	// TODO: Add your control notification handler code here
+/*==========================================================================================*/
+/*================================| CANCEL BUTTON HANDLER |=================================*/
+/*==========================================================================================*/
+void CMsgSenderDlg::OnBnClickedCancel(){
 	CDialogEx::OnOK();
 }
 
 
 
-/*********************************************************************************************/
-/*********************************** ADVANCE BUTTON HANDLER **********************************/
-/*********************************************************************************************/
-void CMsgSenderDlg::OnBnClickedButtonAdvance()
-{
-	// TODO: Add your control notification handler code here
+/*==========================================================================================*/
+/*=================================| ADVANCE BUTTON HANDLER |===============================*/
+/*==========================================================================================*/
+void CMsgSenderDlg::OnBnClickedButtonAdvance(){
 	AdvanceDialog advanceDlg(nullptr, this);
 	advanceDlg.DoModal();
+}
+
+
+
+/*==========================================================================================*/
+/*================================| DISCONNECT BUTTON HANDLER |=============================*/
+/*==========================================================================================*/
+void CMsgSenderDlg::OnBnClickedButtonDisconnect(){
+	/*if (m_bIsClientWindow) {
+
+		StartServer();
+
+		closesocket(m_iClientSocket);
+
+		m_bIsClientWindow = false;
+		m_ButtonConnect.EnableWindow(true);
+		m_ButtonAdvance.EnableWindow(true);
+	}
+	else{
+		send(m_iServerSideClientSocket, "^^", 255, 0);
+		closesocket(m_iServerSocket);
+		StartServer(m_strAdvancePort);
+		m_ButtonConnect.EnableWindow(true);
+	}*/
 }

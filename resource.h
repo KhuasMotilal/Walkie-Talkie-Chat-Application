@@ -24,6 +24,7 @@
 #define ID_SEND                         1013
 #define ID_CANCEL                       1014
 #define IDC_STATIC_DISPLAYMSG           1015
+#define IDC_BUTTON_DISCONNECT           1015
 #define IDC_SCROLLBAR_VERTICAL          1018
 #define IDC_SCROLLBAR6                  1023
 #define IDC_PICTURE_BOX                 1024
@@ -31,7 +32,6 @@
 #define IDC_LIST_DISPLAY                1029
 #define IDC_EDIT_NEW_IP                 1030
 #define ID_OK                           1031
-#define IDC_STATIC_ADVANCE              1032
 #define IDC_STATIC_ADVANCE_PORT_TITLE   1032
 
 // Next default values for new objects
@@ -40,7 +40,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        132
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1033
+#define _APS_NEXT_CONTROL_VALUE         1034
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
