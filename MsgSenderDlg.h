@@ -36,6 +36,7 @@ class CMsgSenderDlg : public CDialogEx
 		CButton m_ButtonConnect;
 		CButton m_ButtonAdvance;
 		CButton m_ButtonDisconnect;
+		CButton m_ButtonSend;
 
 		WSADATA m_WsaData;
 		int m_strAdvancePort;
@@ -52,6 +53,9 @@ class CMsgSenderDlg : public CDialogEx
 		afx_msg void OnBnClickedButtonConnect();
 		afx_msg void OnBnClickedCancel();
 		afx_msg void OnBnClickedButtonAdvance();
+		afx_msg void OnBnClickedButtonDisconnect();
+		afx_msg void OnEnChangeEditMsg();
+
 
 		void FontStyling(CFont& font, int fontSize, int fontWeight, bool italic, bool underline, LPCTSTR fontName, CStatic* pStatic, CButton* pButton = nullptr);
 
@@ -70,7 +74,5 @@ class CMsgSenderDlg : public CDialogEx
 		afx_msg HCURSOR OnQueryDragIcon();
 		afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 
-		DECLARE_MESSAGE_MAP()
-public:
-	afx_msg void OnBnClickedButtonDisconnect();
+		DECLARE_MESSAGE_MAP()	
 };

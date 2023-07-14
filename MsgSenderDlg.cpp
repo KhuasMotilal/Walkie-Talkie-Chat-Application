@@ -71,6 +71,7 @@ void CMsgSenderDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BUTTON_CONNECT, m_ButtonConnect);
 	DDX_Control(pDX, IDC_BUTTON_ADVANCE, m_ButtonAdvance);
 	DDX_Control(pDX, IDC_BUTTON_DISCONNECT, m_ButtonDisconnect);
+	DDX_Control(pDX, ID_SEND, m_ButtonSend);
 }
 
 
@@ -86,6 +87,7 @@ BEGIN_MESSAGE_MAP(CMsgSenderDlg, CDialogEx)
 	ON_BN_CLICKED(ID_CANCEL, &CMsgSenderDlg::OnBnClickedCancel)
 	ON_BN_CLICKED(IDC_BUTTON_ADVANCE, &CMsgSenderDlg::OnBnClickedButtonAdvance)
 	ON_BN_CLICKED(IDC_BUTTON_DISCONNECT, &CMsgSenderDlg::OnBnClickedButtonDisconnect)
+	ON_EN_CHANGE(IDC_EDIT_MSG, &CMsgSenderDlg::OnEnChangeEditMsg)
 END_MESSAGE_MAP()
 
 
@@ -161,6 +163,8 @@ BOOL CMsgSenderDlg::OnInitDialog()
 	FontStyling(m_FontButtonClose, 17, FW_MEDIUM, FALSE, FALSE, _T("Arial"), nullptr, pButtonClose);
 
 	StartServer();
+
+	m_ButtonSend.EnableWindow(false);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -520,4 +524,13 @@ void CMsgSenderDlg::OnBnClickedButtonDisconnect(){
 		StartServer(m_strAdvancePort);
 		m_ButtonConnect.EnableWindow(true);
 	}*/
+}
+
+
+void CMsgSenderDlg::OnEnChangeEditMsg(){
+	CString l_strInputTxt;
+	m_InputMsg.GetWindowText(l_strInputTxt);
+	l_strInputTxt.Trim();
+	if (l_strInputTxt.IsEmpty()) m_ButtonSend.EnableWindow(false);
+	else m_ButtonSend.EnableWindow(true);
 }
