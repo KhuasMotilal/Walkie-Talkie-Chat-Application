@@ -196,6 +196,7 @@ void CMsgSenderDlg::OnPaint()
 	CBrush brush;
 	brush.CreateSolidBrush(RGB(180, 180, 180));
 	dc2.FillRect(&rect2, &brush);
+
 	if (IsIconic()){
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc2.GetSafeHdc()), 0);
 
@@ -216,7 +217,7 @@ void CMsgSenderDlg::OnPaint()
 	
 	GetDlgItem(IDC_STATIC_IMAGE_BOX)->GetClientRect(rect2);
 	CImage image;
-	image.Load(L"res//OditekLogo-removebg-preview.jpg");
+	image.Load(L"D:\\Coading\\Socket\\MsgSender\\res\\OditekLogo-removebg-preview.jpg");
 	CBitmap m_bitmap;
 	m_bitmap.Attach(image.Detach());
 	CDC memoryDC;
