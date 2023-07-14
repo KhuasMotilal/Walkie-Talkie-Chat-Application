@@ -475,7 +475,7 @@ void CMsgSenderDlg::OnBnClickedButtonConnect(){
 	m_InputAddress.GetWindowTextW(l_stringInputIpAddress);
 	m_InputPort.GetWindowTextW(l_stringInputPort);
 
-	l_SInputAddress = CT2A(l_stringInputIpAddress.GetString());
+	l_SInputAddress = CT2A(l_stringInputIpAddress);
 	l_IInuptPort = _wtoi(l_stringInputPort);
 
 	m_bIsClientWindow = ClientConnection(l_SInputAddress, l_IInuptPort);
