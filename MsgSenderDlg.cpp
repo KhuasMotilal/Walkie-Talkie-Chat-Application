@@ -329,7 +329,7 @@ bool CMsgSenderDlg::StartServer(int p_iPort) {
 /*==========================================================================================*/
 /*========================| THREAD FUNCTION FOR REQUEST PROCESSING |========================*/
 /*==========================================================================================*/
-UINT __cdecl CMsgSenderDlg::ProcessingRequest(LPVOID pParam){
+UINT CMsgSenderDlg::ProcessingRequest(LPVOID pParam){
 
 	CMsgSenderDlg* l_pcThisClass = reinterpret_cast<CMsgSenderDlg*>(pParam);
 	CString l_strDateTime, l_strMessage;
@@ -399,7 +399,7 @@ bool CMsgSenderDlg::ClientConnection(const string p_strIpAddress, int p_iPort) {
 /*==========================================================================================*/
 /*===================| THREAD FUNCTION FOR CLIENT SIDE DATA RECEIVING |=====================*/
 /*==========================================================================================*/
-UINT __cdecl CMsgSenderDlg::ClientReceivingMsg(LPVOID pParam) {
+UINT CMsgSenderDlg::ClientReceivingMsg(LPVOID pParam) {
 
 	CMsgSenderDlg* l_pcThisClass = reinterpret_cast<CMsgSenderDlg*>(pParam);
 	int l_iByteReceived;
@@ -527,6 +527,7 @@ void CMsgSenderDlg::OnBnClickedButtonDisconnect(){
 
 void CMsgSenderDlg::OnEnChangeEditMsg(){
 	CString l_strInputTxt;
+
 	m_InputMsg.GetWindowText(l_strInputTxt);
 	l_strInputTxt.Trim();
 	if (l_strInputTxt.IsEmpty()) m_ButtonSend.EnableWindow(false);

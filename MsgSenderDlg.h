@@ -61,8 +61,8 @@ class CMsgSenderDlg : public CDialogEx
 
 		bool StartServer(int p_iPort = 9909);
 		bool ClientConnection(const string p_strIpAddress, int p_iPort);
-		static UINT __cdecl ProcessingRequest(LPVOID pParam);
-		static UINT __cdecl ClientReceivingMsg(LPVOID pParam);
+		static UINT ProcessingRequest(LPVOID pParam);
+		static UINT ClientReceivingMsg(LPVOID pParam);
 
 	protected:
 		HICON m_hIcon;
