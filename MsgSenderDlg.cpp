@@ -430,28 +430,25 @@ UINT __cdecl CMsgSenderDlg::ClientReceivingMsg(LPVOID pParam) {
 /*==========================================================================================*/
 void CMsgSenderDlg::OnBnClickedSend(){
 	CString l_strInputMsg, l_strDateTime;
+	string l_sMsgToBeSend;
 	int l_iLength, l_iBufferSize;
 
 	m_InputMsg.GetWindowTextW(l_strInputMsg);
 
-	l_iLength = l_strInputMsg.GetLength();
-	l_iBufferSize = min(l_iLength + 1, 255);
-	wchar_t* buffer = l_strInputMsg.GetBuffer(l_iBufferSize);
-	wcstombs_s(nullptr, m_cBuff, buffer, _TRUNCATE);
-	l_strInputMsg.ReleaseBuffer();
+	l_sMsgToBeSend = CT2A(l_strInputMsg);
+
+	if (m_bIsClientWindow) {
+		send(m_iClientSocket, l_sMsgToBeSend.c_str(), 255, 0);
+	}
+
+	if (!m_bIsClientWindow) {
+		send(m_iServerSideClientSocket, l_sMsgToBeSend.c_str(), 255, 0);
+	}
 
 	m_InputMsg.SetWindowText(_T(""));
 	l_strDateTime = CTime::GetCurrentTime().Format("%d.%m.%y %H:%M");
 	l_strInputMsg.Format((L"[ ") + (l_strDateTime)+(L" ] ") + (L"[ Self ] ") + (l_strInputMsg)+("\n"));
 	m_displayBox.AddString(l_strInputMsg);
-
-	if (m_bIsClientWindow) {
-		send(m_iClientSocket, m_cBuff, 255, 0);
-	}
-
-	if (!m_bIsClientWindow) {
-		send(m_iServerSideClientSocket, m_cBuff, 255, 0);
-	}
 
 }
 
